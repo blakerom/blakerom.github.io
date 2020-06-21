@@ -1,176 +1,189 @@
-'use strict';
-//=====================Global Variables=====================//
-var hoursOfOperation = ['6am','7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm'];
-var allStoreArray = [];
+`use strict`;
+//=================Globals===================//
+Product.collection = [];
+var totalClicks = 0;
+var maxClicks = 25;
+var firstPrev;
+var secondPrev;
+var thirdPrev;
 
-//===========================Objects=========================//
+//=================Objects==================//
+var bathProduct = new Product('images/bathroom.jpg', 'iPad while you iPoo', 'Bathroom iPad Multitool');
+var petSweeperProduct = new Product('images/pet-sweep.jpg', 'Put your pets to work as they run around your house with snap on sweepers.', 'Pet Sweeper');
+var pizzaScizzorsProduct = new Product('images/scissors.jpg', 'Cut your pizza and plate it in half the time!', 'Pizza Scissors');
+var tauntaunProduct = new Product('images/tauntaun.jpg', 'Always wanted to survive the cold perils of Hoth? Now you can!', 'Tauntaun Sleeper');
+var bagR2Product = new Product('images/bag.jpg','R2D2 is your personal suitcase', 'R2 Rollcase');
+var bananaProduct = new Product('images/banana.jpg', 'Cut your bananas perfectly!', 'Banana cut');
+var bootsProduct = new Product('images/boots.jpg', 'Rain boots too sweaty? Try Rain Boats!', 'Rain Boats');
+var breakfastProduct = new Product('images/breakfast.jpg', 'Make your entire breakfast with just one handy tool', 'Breakfast Machine');
+var bubblegumProduct = new Product('images/bubblegum.jpg', 'Meatball flavored bubble gum! It\'s protein!', 'MeatGum');
+var chairProduct = new Product('images/chair.jpg', 'Take a seat, it\'s relaxing!', 'Cozy Chair');
+var cthulhuProduct = new Product('images/cthulhu.jpg', 'This toy is only for the brave.', 'Cthulu Toy');
+var dogDuckProduct = new Product('images/dog-duck.jpg', 'Loud, yappy dog? This device turns the annoy into, oh boy!', 'Duck Dog Device');
+var dragonProduct = new Product('images/dragon.jpg', 'Dragon meat. It is also protein!', 'Dragon Meat');
+var penProduct = new Product('images/pen.jpg', 'Work during lunch? Be efficient.', 'Pen plastic ware');
+var sharkProduct = new Product('images/shark.jpg', 'This cute sleeping bag is sure to impress.', 'Shark Sleeper');
+var sweepProduct = new Product('images/sweep.png', 'Baby can\'t wait to work? Let them sweep.', 'Baby Sweeper');
+var unicornProduct = new Product('images/unicorn.jpg', 'Unicorn meat...It\'s protein.', 'Unicorn Meat');
+var usbProduct = new Product('images/usb.gif', 'Tentacle usb moves when in use.', 'Tentacle USB');
+var watercanProduct = new Product('images/water-can.jpg', 'Never run out of water with this can,', 'Watercan');
+var wineglassProduct = new Product('images/wine-glass.jpg', 'Perfect oxygenation in every glass.', 'Wineglass');
 
-var seattleStore = new Store('Seattle', 23, 65, 6.3);
-var tokyoStore = new Store('Tokyo', 3, 24, 1.2);
-var dubaiStore = new Store('Dubai', 11, 38, 3.7);
-var parisStore = new Store('Paris', 20, 38, 2.3);
-var limaStore = new Store('Lima', 2, 16, 4.6);
+// Local storage
+var stringyProductsFromStorage = localStorage.getItem('storedProducts');
+var productsFromStorage = JSON.parse(stringyProductsFromStorage);
+console.log('products from storage: ', productsFromStorage);
 
-// ====================Constructors==========================//
-
-function Store(name, minNumCustomers, maxNumCustomers, averageCookiesSold) {
-  this.name = name;
-  this.minNumCustomers = minNumCustomers;
-  this.maxNumCustomers = maxNumCustomers;
-  this.averageCookiesSold = averageCookiesSold;
-  this.cookiesSold = [];
-  allStoreArray.push(this);
+if(productsFromStorage){
+  Product.collection = productsFromStorage;
 }
 
-Store.prototype.getHourlyCookiesSold = getHourlyCookiesSold;
-Store.prototype.renderTable = renderTable;
+//=================Functions=================//
+function Product(source, description, name){
+  this.clicked = 0;
+  this.shown = 0;
+  this.productName = name;
+  this.productSource = source;
+  this.productDescription = description;
 
-//=======================Event Listener======================//
-
-var newStoreEntry = document.getElementById('createEntry');
-
-newStoreEntry.addEventListener('submit', createNewStoreEntry);
-  
-function createNewStoreEntry(newStoreEvent){
-  newStoreEvent.preventDefault();
-
-  var name = newStoreEvent.target.storeName.value;
-  var minCustomer = newStoreEvent.target.minCust.value;
-  var maxCustomer = newStoreEvent.target.maxCust.value;
-  var avgCustomer = newStoreEvent.target.avgCust.value;
-
-  // console.log(name, minCustomer, maxCustomer, avgCustomer);
-  var createNewStore = new Store(name, minCustomer, maxCustomer, avgCustomer);
-  createNewStore.renderTable();
-  deleteRow();
-  totalCookiesPerHour();
+  Product.collection.push(this);
 }
 
-//======================Functions===========================//
+var productImageSelection = document.getElementById('productImages');
+productImageSelection.addEventListener('click', handleImageClick);
 
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
-function getRandomCustomerCount(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function getCookieSum(cookies) {
-  var sum = 0;
-  for (var g = 0; g < cookies.length; g++)
-  {
-    sum+=cookies[g];
-  }
-  return sum;
-}
-// https://www.w3schools.com/jsref/met_table_deleterow.asp
-var holdMyNumber = 6;
-function deleteRow() {
-  document.getElementById('storeTable').deleteRow(holdMyNumber);
-  holdMyNumber += 1;
-}
-
-function getHourlyCookiesSold() {
-  // var tempSum = 0;
-  for (var i = 0; i < hoursOfOperation.length; i++)
-  {
-    // var hourlyTotals = 0;
-    var randomNumbers = getRandomCustomerCount(this.minNumCustomers, this.maxNumCustomers);
-    var totalHourlySales = Math.round(randomNumbers * this.averageCookiesSold);
-    // console.log('ghcsTotal :', totalHourlySales);
-    this.cookiesSold.push(totalHourlySales);//hourly cookie total sales per city pushed to array named cookiesSold
-  }
-}
-// function dailyTotalSales() {
-//   var totalCookies = getCookieSum(this.cookiesSold);
-//   var totalList = document.getElementById('storeTable');
-//   var cookieListTotal = document.createElement('li');
-//   cookieListTotal.textContent = ('Total Cookies Sold: ' + totalCookies);
-//   totalList.appendChild(cookieListTotal);
-// }
-
-function renderToPage() {
-  //add items to html
-  var parentUnorderedList = document.getElementById(this.listId);
-  for (var j = 0; j < hoursOfOperation.length; j++)
-  {
-  var listItem = document.createElement('li');
-  listItem.textContent = hoursOfOperation[j] + ': ' + this.cookiesSold[j] + ' cookies.';
-  parentUnorderedList.appendChild(listItem);
-  }
-  var nameHeading = document.getElementById(this.headingId);
-  var displayCity = document.createElement('h2');
-  displayCity.textContent = this.name;
-  nameHeading.appendChild(displayCity);
-}
-
-function renderHeading() {
-  var table = document.getElementById('storeTable');
-  var headerRow = document.createElement('tr');
-  var headerCell = document.createElement('th');
-  headerCell.textContent = 'City';
-  headerRow.appendChild(headerCell);
-  for(var i = 0; i < hoursOfOperation.length; i++) {
-    var newCell = document.createElement('th');
-    newCell.textContent = hoursOfOperation[i];
-    headerRow.appendChild(newCell);
-  }
-  headerCell = document.createElement('th');
-  headerCell.textContent = 'Daily Total: ';
-  headerRow.appendChild(headerCell);
-  table.appendChild(headerRow);
-}
-
-function renderTable() {
-  this.getHourlyCookiesSold();
-  var totalCookies = getCookieSum(this.cookiesSold);
-  var table = document.getElementById('storeTable');
-  var tableRow = document.createElement('tr');
-  var tableCell = document.createElement('td');
-  tableRow.appendChild(tableCell);
-  tableCell.textContent = this.name;
-  for (var i = 0; i < this.cookiesSold.length; i++) {
-    tableCell = document.createElement('td');
-    tableCell.textContent = this.cookiesSold[i];
-    tableRow.appendChild(tableCell);
-  }
-  var tableCell = document.createElement('th');
-  tableCell.textContent = totalCookies;
-  tableRow.appendChild(tableCell);
-  table.appendChild(tableRow);
-}
-
-function totalCookiesPerHour() {
-  var tempCookies = 0;
-  var totalCookies = 0;
-  var table = document.getElementById('storeTable');
-  var footerRow = document.createElement('tr');
-  var footerCell = document.createElement('th');
-  footerCell.textContent = 'Hourly Total: ';
-  footerRow.appendChild(footerCell);
-  for (var i = 0; i < hoursOfOperation.length; i++) {
-    var totalCookies = 0;
-    for( var j = 0; j < allStoreArray.length; j++) {
-      totalCookies += allStoreArray[j].cookiesSold[i];
-      tempCookies += allStoreArray[j].cookiesSold[i];
+// Event Listener
+function handleImageClick(event){
+  if(event.target.tagName === 'IMG') {
+    totalClicks++;
+    console.log('image clicked', totalClicks);
+    //Click counter
+    var targetSrc = event.target.getAttribute('src');
+    for(var i = 0; i < Product.collection.length; i++){
+      if (Product.collection[i].productSource === targetSrc){//if targeted add a click
+        Product.collection[i].clicked++;
+        console.log('clicked from function',this.clicked);
+        console.log(Product.collection[i]);
+      }
     }
-    var footerCell = document.createElement('td');
-    footerCell.textContent = totalCookies;
-    footerRow.appendChild(footerCell);
+    rerenderProductSelection();
+    // Render new Images
+    if (totalClicks === maxClicks){
+      productImageSelection.removeEventListener('click', handleImageClick);
+      getSummary();
+      createChart();
+    }
+
+    var stringyProductCollection = JSON.stringify(Product.collection);
+    // console.log('stringy array',stringyProductCollection);
+    localStorage.setItem('storedProducts', stringyProductCollection);
+
   }
-  console.log('total cookies: ',tempCookies);
-  footerCell = document.createElement('td');
-  footerCell.textContent = tempCookies; //final number
-  footerRow.appendChild(footerCell);
-  table.appendChild(footerRow);
+  else
+  alert('click on an image to make a selection.');
 }
 
-// //================Invokes===========================//
+//shows totals at end
+function getSummary(){
+  var totals = document.getElementById('totals');
+  for (var i in Product.collection){
+    var listItem = document.createElement('li');
+    listItem.textContent = Product.collection[i].productDescription + ' was shown ' + Product.collection[i].shown + ' and had ' + Product.collection[i].clicked + ' votes.';
+    totals.appendChild(listItem);
+  }
+}
+//Rerender Images shown
+function rerenderProductSelection(){
+  console.log('collection', Product.collection);
+  var firstRandom = randomProduct(0, Product.collection.length);
+  var secondRandom = randomProduct(0, Product.collection.length);
+  var thirdRandom = randomProduct(0, Product.collection.length);
+  
+  do {
+    firstRandom = randomProduct(0, Product.collection.length);
+  } while (firstRandom === secondRandom || firstRandom === thirdRandom || firstRandom === firstPrev || firstRandom === secondPrev || firstRandom === thirdPrev);
 
-renderHeading();
-seattleStore.renderTable();
-tokyoStore.renderTable();
-dubaiStore.renderTable();
-parisStore.renderTable();
-limaStore.renderTable();
-totalCookiesPerHour();
+  do {
+    secondRandom = randomProduct(0, Product.collection.length);
+  } while (secondRandom === firstRandom || secondRandom === thirdRandom || secondRandom === firstPrev || secondRandom === secondPrev || secondRandom === thirdPrev);
+    
+  do {
+    thirdRandom = randomProduct(0, Product.collection.length);
+  } while (thirdRandom === firstRandom || thirdRandom === secondRandom || thirdRandom === firstPrev || thirdRandom === secondPrev || thirdRandom === thirdPrev);
+
+  console.log('random 1',firstRandom);
+  console.log('random 2',secondRandom);
+  console.log('random 3',thirdRandom);
+    
+  firstPrev = firstRandom;
+  secondPrev = secondRandom;
+  thirdPrev = thirdRandom;
+
+  console.log('random 1 Prev',firstPrev);
+  console.log('random 2 Prev',secondPrev);
+  console.log('random 3 Prev',thirdPrev);
+
+  var firstImage = document.getElementById('image1');
+  var firstText = document.getElementById('text1');
+  var secondImage = document.getElementById('image2');
+  var secondText = document.getElementById('text2');
+  var thirdImage = document.getElementById('image3');
+  var thirdText = document.getElementById('text3');
+
+  firstImage.src = Product.collection[firstRandom].productSource;
+  firstText.textContent = Product.collection[firstRandom].productDescription;
+  Product.collection[firstRandom].shown++;
+
+  var secondProduct = Product.collection[secondRandom];
+  secondImage.src = secondProduct.productSource;
+  secondText.textContent = secondProduct.productDescription;
+  secondProduct.shown++;
+
+  var thirdProduct = Product.collection[thirdRandom];
+  thirdImage.src = thirdProduct.productSource;
+  thirdText.textContent = thirdProduct.productDescription;
+  thirdProduct.shown++;
+}
+
+//Randomizer
+function randomProduct(min, max){
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+//===================Chart===================//
+
+function createChart(){
+  var chartNames = [];
+  var chartProductClicks = [];
+  var chartProductShown = [];
+  for(var i = 0; i < Product.collection.length; i++){
+    chartNames.push(Product.collection[i].productName);
+    chartProductClicks.push(Product.collection[i].clicked);
+    chartProductShown.push(Product.collection[i].shown);
+    // console.log('chart names :', chartNames);
+  }
+
+  var ctx = document.getElementById('productChart').getContext('2d');
+  var productChart = new Chart(ctx, {
+    type: 'bar',
+
+    // The data for our dataset
+    data: {
+        labels: chartNames,
+        datasets: [{
+            label: 'Votes',
+            data: chartProductClicks,
+            backgroundColor: 'blue',
+            borderColor: 'blue'
+        }, {
+            label: 'Times Shown',
+            data: chartProductShown,
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)'
+        }]
+    },
+
+    // Configuration options go here
+    options: {}
+  });
+}
